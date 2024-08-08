@@ -1,5 +1,9 @@
-from flask import Flask, request, abort
-
+from flask import (
+    Flask, 
+    request, 
+    abort, 
+    render_template
+)
 from linebot.v3 import (
     WebhookHandler
 )
@@ -34,8 +38,13 @@ if channel_access_token is None:
     print('Specify LINEBOT_ACCESS_TOKEN as environment variable.')
     sys.exit(1)
 
-configuration = Configuration(access_token=channel_access_token)
 handler = WebhookHandler(channel_secret)
+configuration = Configuration(access_token=channel_access_token)
+
+# 測試用，確定Webhook Server有連通
+@app.route("/") 
+def say_hello_world(username=""):
+    return render_template("hello.html", name=username)
 
 # 設計一個callback的路由器，提供給Line官方後台去呼叫
 # 也就是所謂的呼叫Webhook Sever
@@ -77,4 +86,4 @@ def handle_message(event):
         )
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
