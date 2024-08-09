@@ -18,4 +18,4 @@ def get_secret_and_token():
     return {
         'LINEBOT_SECRET_KEY': channel_secret,
         'LINEBOT_ACCESS_TOKEN': channel_access_token
-    }
+    } 
