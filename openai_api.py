@@ -10,14 +10,14 @@ def chat_with_chatgpt(user_message, openai_api_key):
         messages=[
             {
                 "role": "user",
-                "content": user_message,
+                "content": user_message + '請用有感情的方式回答一句話就好。',
             }
         ],
         model="gpt-3.5-turbo",
     )
 
     response = chat_completion.choices[0].message.content
-    return response
+    return response if response else "No Content."
 
 if __name__ == '__main__':
     user_message = "推薦我一款有料的手搖飲，在台中有開設的店家並附上店家資料"
