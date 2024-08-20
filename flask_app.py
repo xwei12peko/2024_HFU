@@ -1,62 +1,28 @@
-from flask import Flask, request, abort
+from flask import Flask # flask是工具箱(module模組)，Flask是工具(class類別)
+from flask import redirect, url_for, render_template
 
-from linebot.v3 import (
-    WebhookHandler
-)
-from linebot.v3.exceptions import (
-    InvalidSignatureError
-)
-from linebot.v3.messaging import (
-    Configuration,
-    ApiClient,
-    MessagingApi,
-    ReplyMessageRequest,
-    TextMessage                     # 傳輸回官方後台的資料格式
-)
-from linebot.v3.webhooks import (
-    MessageEvent,                   # 傳輸過來的方法
-    TextMessageContent              # 使用者傳輸過來的資料格式
-)
+app = Flask(__name__) # 製作出一個由Flask類別生成的物件 (object)
 
-app = Flask(__name__)
+@app.route("/") # 裝飾器: 根目錄要做啥事
+@app.route("/<string:username>")
+def say_hello_world(username=""):
+    return render_template("hello.html", name=username)
 
-configuration = Configuration(access_token='YOUR_CHANNEL_ACCESS_TOKEN')
-handler = WebhookHandler('YOUR_CHANNEL_SECRET')
+@app.route("/tell_me_a_joke")
+def tell_me_a_joke():
+    return "<h1>Ha ha ha ha</h1>"
+
+@app.route("/eat/<string:what_fruit>")
+def eat_fruit(what_fruit):
+    return redirect(url_for('say_fruit_is_gone', fruit=what_fruit)) # url_for(route_function_name)
+
+@app.route("/eat_<string:fruit>")
+def say_fruit_is_gone(fruit):
+    return "<h1>" + fruit + " is gone.</h1>"
 
 
-# 設計一個callback的路由器，提供給Line官方後台去呼叫
-# 也就是所謂的呼叫Webhook Sever
-# 因為官方會把使用者傳輸的訊息轉傳給Webhook Sever
-# 所以會使Restful API的PORT方法
-@app.route("/callback", methods=['POST'])
-def callback():
-    # get X-Line-Signature header value
-    signature = request.headers['X-Line-Signature']
 
-    # get request body as text
-    body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
-
-    # handle webhook body
-    try:
-        handler.handle(body, signature)
-    except InvalidSignatureError:
-        app.logger.info("Invalid signature. Please check your channel access token/channel secret.")
-        abort(400)
-
-    return 'OK'
-
-
-@handler.add(MessageEvent, message=TextMessageContent)
-def handle_message(event):
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message_with_http_info(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=event.message.text)]
-            )
-        )
-
-if __name__ == "__main__":
-    app.run()
+# 如果我直接執行這個檔案，那__name__ 就等於 __main__
+if __name__ == '__main__':
+    # 或在command_line 下: flask --app flask_linebot.py --debug run
+    app.run(debug=True)
